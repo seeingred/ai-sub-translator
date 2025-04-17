@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HandleSubtitleProps } from "../types";
 declare global {
     interface Window {
         subtitle: {
-            handle: (props: HandleSubtitleProps) => Promise<string>
+            appName: string,
+            handle: (props: HandleSubtitleProps) => Promise<string>,
+            getProgressNumber: () => number,
+            setTitle: (title: string) => void
         }
     }
 }
@@ -16,6 +19,8 @@ const Translation = ({ text }: { text: string }) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [batchSize, setBatchSize] = useState<number>(80);
     const [translatedSubtitles, setTranslatedSubtitles] = useState<string>("");
+    const [progressPercentage, setProgressPercentage] = useState<number>(0);
+    const progressCheckInterval = useRef<NodeJS.Timeout | null>(null);
     const handleTranslate = () => {
         setLoading(true);
         window.subtitle.handle({
@@ -37,6 +42,25 @@ const Translation = ({ text }: { text: string }) => {
         a.download = `${pieceNameOrContext} - ${language}.srt`;
         a.click();
     }
+    useEffect(() => {
+        if (!loading) {
+            clearInterval(progressCheckInterval.current);
+            setProgressPercentage(0);
+            return;
+        }
+        progressCheckInterval.current = setInterval(() => {
+            const progressNumber = window.subtitle.getProgressNumber();
+            setProgressPercentage(Math.round(progressNumber * 100));
+        }, 1000);
+    }, [loading])
+    useEffect(() => {
+        let newTitle = window.subtitle.appName;
+        if (progressPercentage > 0) {
+            newTitle = `${newTitle} (${progressPercentage}%)`
+        }
+        window.subtitle.setTitle(newTitle);
+    }, [progressPercentage])
+    console.log(`loading`, loading);
     return (
         <>
             <h2>Translation</h2>
@@ -56,7 +80,7 @@ const Translation = ({ text }: { text: string }) => {
                 <label>Batch Size</label>
                 <input type="number" disabled value={batchSize} />
             </div>
-            <button onClick={handleTranslate} disabled={loading}>{loading ? "Translating..." : "Translate"}</button>
+            <button onClick={handleTranslate} disabled={loading}>{loading ? "Translating... " + progressPercentage + "%" : "Translate"}</button>
             {translatedSubtitles && <><div className="gap" /><button onClick={handleDownload}>Download .srt file</button></>}
         </>
     )

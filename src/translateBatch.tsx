@@ -13,14 +13,22 @@ async function aiCall({ text, language, pieceNameOrContext, model }: HandleSubti
     return response.text;
 }
 
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 
 const translateBatch = async (props: TranslateBatchProps): Promise<string> => {
     const text = props.replicas.join('');
-    const translatedText = await aiCall({
-        ...props,
-        text
-    });
+    let translatedText = '';
+    try {
+        translatedText = await aiCall({
+            ...props,
+            text
+        });
+    } catch (error) {
+        console.error(error);
+        await wait(10000);
+        return translateBatch(props);
+    }
     return translatedText;
 }
 

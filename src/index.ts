@@ -19,6 +19,7 @@ const createWindow = (): void => {
             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
             webSecurity: true,
         },
+        icon: './images/icon.png'
     });
 
     // Set Content Security Policy
@@ -41,6 +42,10 @@ const createWindow = (): void => {
 
     ipcMain.handle('progress', (event, progress: number) => {
         mainWindow.setProgressBar(progress);
+    });
+
+    ipcMain.handle('set-title', (event, title: string) => {
+        mainWindow.setTitle(title);
     });
 };
 
