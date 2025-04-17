@@ -6,18 +6,21 @@ declare global {
             appName: string,
             handle: (props: HandleSubtitleProps) => Promise<string>,
             getProgressNumber: () => number,
-            setTitle: (title: string) => void
+            setTitle: (title: string) => void,
+            encrypt: (text: string) => Promise<string>,
+            decrypt: (text: string) => Promise<string>
         }
     }
 }
 
 
 const Translation = ({ text }: { text: string }) => {
-    const [language, setLanguage] = useState<string>("russian");
-    const [pieceNameOrContext, setPieceNameOrContext] = useState<string>("last of us season 2 episode 1");
+    const [language, setLanguage] = useState<string>("");
+    const [pieceNameOrContext, setPieceNameOrContext] = useState<string>("");
     const [model, setModel] = useState<string>("gemini-2.0-flash");
     const [loading, setLoading] = useState<boolean>(false);
     const [batchSize, setBatchSize] = useState<number>(80);
+    const [apiKey, setApiKey] = useState<string>("");
     const [translatedSubtitles, setTranslatedSubtitles] = useState<string>("");
     const [progressPercentage, setProgressPercentage] = useState<number>(0);
     const progressCheckInterval = useRef<NodeJS.Timeout | null>(null);
@@ -28,7 +31,8 @@ const Translation = ({ text }: { text: string }) => {
             language,
             pieceNameOrContext,
             model,
-            batchSize
+            batchSize,
+            apiKey
         }).then((batch) => {
             setTranslatedSubtitles(batch);
             setLoading(false);
@@ -60,16 +64,45 @@ const Translation = ({ text }: { text: string }) => {
         }
         window.subtitle.setTitle(newTitle);
     }, [progressPercentage])
-    console.log(`loading`, loading);
+
+    useEffect(() => {
+        if (!text) {
+            return;
+        }
+        ; (async () => {
+            const encrypted = localStorage.getItem("apiKey");
+            const decrypted = encrypted ? await window.subtitle.decrypt(encrypted) : '';
+            setApiKey(decrypted);
+            const language = localStorage.getItem("language");
+            setLanguage(language);
+        })()
+    }, [text]);
+
+    const properSetApiKey = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setApiKey(value);
+        const encrypted = value ? await window.subtitle.encrypt(e.target.value) : '';
+        localStorage.setItem("apiKey", encrypted);
+    }
+
+    const properSaveLanguage = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLanguage(e.target.value);
+        localStorage.setItem("language", e.target.value);
+    }
+
     return (
         <>
             <h2>Translation</h2>
             <div className="block">
-                <label>Language</label>
-                <input type="text" onChange={(e) => setLanguage(e.target.value)} value={language} />
+                <label>Api Key</label>
+                <input type="password" onChange={(e) => setApiKey(e.target.value)} onBlur={properSetApiKey} value={apiKey} />
             </div>
             <div className="block">
-                <label>Piece Name or Context</label>
+                <label>Language</label>
+                <input type="text" onChange={(e) => setLanguage(e.target.value)} onBlur={properSaveLanguage} value={language} />
+            </div>
+            <div className="block">
+                <label>Piece name or context</label>
                 <input type="text" onChange={(e) => setPieceNameOrContext(e.target.value)} value={pieceNameOrContext} />
             </div>
             <div className="block">
@@ -77,7 +110,7 @@ const Translation = ({ text }: { text: string }) => {
                 <input type="text" disabled value={model} />
             </div>
             <div className="block">
-                <label>Batch Size</label>
+                <label>Batch size</label>
                 <input type="number" disabled value={batchSize} />
             </div>
             <button onClick={handleTranslate} disabled={loading}>{loading ? "Translating... " + progressPercentage + "%" : "Translate"}</button>

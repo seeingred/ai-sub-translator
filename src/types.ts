@@ -1,3 +1,5 @@
+import type { GoogleGenAI } from "@google/genai";
+
 export interface SubtitleProps {
     language: string;
     pieceNameOrContext: string;
@@ -10,6 +12,11 @@ export interface HandleSubtitleProps extends SubtitleProps {
     text: string;
 }
 
+export interface handleAiProps extends HandleSubtitleProps {
+    ai: GoogleGenAI;
+}
+
 export interface TranslateBatchProps extends SubtitleProps {
     replicas: string[];
+    ai: GoogleGenAI;
 }

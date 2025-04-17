@@ -4,13 +4,17 @@ import { ipcMain, ipcRenderer } from 'electron';
 
 let progressNumber = 0;
 
+
+
 export const getProgressNumber = (): number => {
-    console.log(`progressNumber`, progressNumber);
     return progressNumber;
 }
 
+import { GoogleGenAI } from "@google/genai";
+
 const handleSubtitle = async (props: HandleSubtitleProps): Promise<string> => {
-    const { text, batchSize } = props;
+    
+    const { text, batchSize, apiKey } = props;
     let newText = text;
     let replicas: string[] = [];
     while (newText.includes('-->')) {
@@ -46,6 +50,9 @@ const handleSubtitle = async (props: HandleSubtitleProps): Promise<string> => {
             }
         }
     }
+
+    const ai = new GoogleGenAI({ apiKey });
+
     progressNumber = 0;
     const progressIncrease = batchSize / replicas.length;
     ipcRenderer.invoke('progress', progressNumber);
@@ -56,6 +63,7 @@ const handleSubtitle = async (props: HandleSubtitleProps): Promise<string> => {
         newReplicas = newReplicas.slice(batchSize);
         const text = await translateBatch({
             replicas: nextBatch,
+            ai,
             ...props
         });
         translatedText += text + '\n';
