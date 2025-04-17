@@ -71,8 +71,15 @@ const Translation = ({ text }: { text: string }) => {
         }
         ; (async () => {
             const encrypted = localStorage.getItem("apiKey");
-            const decrypted = encrypted ? await window.subtitle.decrypt(encrypted) : '';
-            setApiKey(decrypted);
+            if (encrypted) {
+                try {
+                    const decryptedTry = await window.subtitle.decrypt(encrypted)
+                    setApiKey(decryptedTry);
+                } catch (error) {
+                    console.error(`error`, error);
+                    setApiKey(encrypted);
+                }
+            }
             const language = localStorage.getItem("language");
             setLanguage(language);
         })()
@@ -81,8 +88,15 @@ const Translation = ({ text }: { text: string }) => {
     const properSetApiKey = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setApiKey(value);
-        const encrypted = value ? await window.subtitle.encrypt(e.target.value) : '';
-        localStorage.setItem("apiKey", encrypted);
+        if (value) {
+            try {
+                const encryptedTry = await window.subtitle.encrypt(value);
+                localStorage.setItem("apiKey", encryptedTry);
+            } catch (error) {
+                console.error(`error`, error);
+                localStorage.setItem("apiKey", value);
+            }
+        }
     }
 
     const properSaveLanguage = (e: React.ChangeEvent<HTMLInputElement>) => {
