@@ -6,16 +6,19 @@ An Electron-based desktop application for translating subtitles using AI technol
 
 ## Features
 
-- Upload and process subtitle files
-- AI-powered translation using Google's Generative AI
-- Batch translation capabilities
-- Secure storage of API keys
-- Modern React-based user interface
+- Well, it translates subtitles
+- Progress bar
+- Modern React-based user interface (he-he)
+
+## ToDo
+
+- Grab subtitles directly from video source
+- Support .mks, .ass formats
+- Different AI models support
+- Download / Upload subtitles to subtitle websites
+- Proper UX/UI
 
 ## Usage
-
-
-
 
 1. Grab latest release or build the app
 2. Obtain API key for Gemini AI [here](https://aistudio.google.com/app/apikey)
@@ -66,22 +69,6 @@ This will create distributable packages for your platform.
 
 - `npm start` - Start the application in development mode
 - `npm run make` - Create distributable packages
-
-## Project Structure
-
-```
-ai-sub-translator/
-├── src/
-│   ├── components/     # React components
-│   ├── index.ts        # Main process entry point
-│   ├── renderer.ts     # Renderer process entry point
-│   ├── handleSubtitle.ts # Subtitle processing logic
-│   ├── translateBatch.tsx # Batch translation functionality
-│   └── types.ts        # TypeScript type definitions
-├── .webpack/           # Webpack build output
-├── out/                # Production build output
-└── package.json        # Project configuration and dependencies
-```
 
 ## Technologies Used
 
