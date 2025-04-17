@@ -14,3 +14,7 @@ label {
   display: block;
   padding-bottom: 0.5rem;
 }
+.gap {
+  display: inline-block;
+  width: 0.5rem;
+}

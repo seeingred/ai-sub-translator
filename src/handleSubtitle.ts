@@ -1,11 +1,9 @@
 import translateBatch from './translateBatch';
 import { HandleSubtitleProps } from './types';
-import { ipcRenderer } from 'electron';
+import { ipcMain, ipcRenderer } from 'electron';
 
 const handleSubtitle = async (props: HandleSubtitleProps): Promise<string> => {
     const { text, batchSize } = props;
-    console.log(`batchSize`, batchSize);
-    
     let newText = text;
     let replicas: string[] = [];
     while (newText.includes('-->')) {
@@ -41,12 +39,26 @@ const handleSubtitle = async (props: HandleSubtitleProps): Promise<string> => {
             }
         }
     }
-    const batch = await translateBatch({
-        replicas: replicas.slice(0, batchSize),
-        ...props
-    });
-
-    return batch;
+    let progressNumber = 0;
+    const progressIncrease = batchSize / replicas.length;
+    ipcRenderer.invoke('progress', progressNumber);
+    let newReplicas = [...replicas];
+    let translatedText = '';
+    while (newReplicas.length > 0) {
+        const nextBatch = newReplicas.slice(0, batchSize);
+        newReplicas = newReplicas.slice(batchSize);
+        const text = await translateBatch({
+            replicas: nextBatch,
+            ...props
+        });
+        translatedText += text + '\n\n\n';
+        progressNumber += progressIncrease;
+        if (progressNumber < 1) {
+            ipcRenderer.invoke('progress', progressNumber);
+        }
+    }
+    ipcRenderer.invoke('progress', -1);
+    return translatedText;
 }
 
 export default handleSubtitle;

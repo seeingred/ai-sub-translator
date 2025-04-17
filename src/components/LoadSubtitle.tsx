@@ -57,17 +57,8 @@ const Translation = ({ text }: { text: string }) => {
                 <input type="number" disabled value={batchSize} />
             </div>
             <button onClick={handleTranslate} disabled={loading}>{loading ? "Translating..." : "Translate"}</button>
-            " "
-            {translatedSubtitles && <button onClick={handleDownload}>Download .srt file</button>}
+            {translatedSubtitles && <><div className="gap" /><button onClick={handleDownload}>Download .srt file</button></>}
         </>
-    )
-}
-
-const TranslationInner = ({ text }: { text: string }) => {
-    return (
-        <div>
-            <h2>Translation</h2>
-        </div>
     )
 }
 

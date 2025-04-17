@@ -2,7 +2,6 @@ import { GoogleGenAI } from "@google/genai";
 import { HandleSubtitleProps, TranslateBatchProps } from './types';
 
 const apiKey = process.env.GOOGLE_API_KEY;
-console.log(`apiKey`, apiKey);
 
 const ai = new GoogleGenAI({ apiKey });
 
@@ -18,7 +17,6 @@ async function aiCall({ text, language, pieceNameOrContext, model }: HandleSubti
 
 const translateBatch = async (props: TranslateBatchProps): Promise<string> => {
     const text = props.replicas.join('');
-    console.log(`text`, text);
     const translatedText = await aiCall({
         ...props,
         text
