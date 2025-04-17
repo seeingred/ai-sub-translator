@@ -5,3 +5,12 @@ body {
   max-width: 38rem;
   padding: 2rem;
 }
+
+.block {
+  padding-bottom: 1rem; 
+}
+
+label {
+  display: block;
+  padding-bottom: 0.5rem;
+}
