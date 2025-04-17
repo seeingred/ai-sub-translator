@@ -1,5 +1,7 @@
 # AI Subtitle Translator
 
+![App screenshot](./images/screenshot.png "App screenshot")
+
 An Electron-based desktop application for translating subtitles using AI technology. This application allows users to translate subtitle files efficiently using Google's Generative AI.
 
 ## Features
@@ -10,10 +12,23 @@ An Electron-based desktop application for translating subtitles using AI technol
 - Secure storage of API keys
 - Modern React-based user interface
 
+## Usage
+
+
+
+
+1. Grab latest release or build the app
+2. Obtain API key for Gemini AI [here](https://aistudio.google.com/app/apikey)
+3. Launch the app
+4. Load source .srt file 
+5. Enter your API key, language to translate, name the piece of content that you want to translate (eg. Last of us season 2 episode 1)
+6. Press Translate button. It should take couple of minutes (progress will be displayed)
+
 ## Prerequisites
 
 - Node.js (v14 or higher)
 - npm (v6 or higher)
+
 
 ## Installation
 
