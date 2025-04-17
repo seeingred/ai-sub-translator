@@ -19,7 +19,7 @@ An Electron-based desktop application for translating subtitles using AI technol
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/ai-sub-translator.git
+git clone https://github.com/seeingred/ai-sub-translator.git
 cd ai-sub-translator
 ```
 
