@@ -1,6 +1,6 @@
 # AI Subtitle Translator
 
-![App screenshot](./images/screenshot.png "App screenshot")
+![App screenshot](./images/screenshot.png =width=512 "App screenshot")
 
 An Electron-based desktop application for translating subtitles using AI technology. This application allows users to translate subtitle files efficiently using Google's Generative AI.
 
