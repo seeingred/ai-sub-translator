@@ -50,6 +50,8 @@
     "electron-squirrel-startup": "^1.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "unzipper": "^0.12.3"
+    "tar": "^7.4.3",
+    "unzipper": "^0.12.3",
+    "xz-decompress": "^0.2.2"
   }
 }
