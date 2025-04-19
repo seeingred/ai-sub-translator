@@ -24,6 +24,7 @@ const makeDir = promisify(fs.mkdir);
 const URL_MAC_X64 = 'https://evermeet.cx/pub/ffmpeg/ffmpeg-7.1.1.zip';
 const URL_MAC_ARM64 = 'https://www.osxexperts.net/ffmpeg711arm.zip';
 const URL_LINUX_X64 = 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz';
+const URL_LINUX_ARM64 = 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz';
 const URL_WIN_X64 = 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip';
 
 export const initializeFFmpeg = async (options: FFmpegDownloadOptions): Promise<string> => {
@@ -260,7 +261,9 @@ function getFFmpegDownloadUrl(platform: string, arch: string): string {
                 ? URL_MAC_ARM64
                 : URL_MAC_X64
         case 'linux':
-            return URL_LINUX_X64
+            return arch === 'arm64'
+                ? URL_LINUX_ARM64
+                : URL_LINUX_X64
         default:
             throw new Error(`Unsupported platform: ${platform}`);
     }
