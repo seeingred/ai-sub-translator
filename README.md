@@ -9,10 +9,10 @@ An Electron-based desktop application for translating subtitles using AI technol
 - Well, it translates subtitles
 - Progress bar
 - Modern React-based user interface (he-he)
+- Grab subtitles directly from video source
 
 ## ToDo
 
-- Grab subtitles directly from video source
 - Support .mks, .ass formats
 - Different AI models support
 - Download / Upload subtitles to subtitle websites
