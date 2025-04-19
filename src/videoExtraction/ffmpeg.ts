@@ -212,8 +212,8 @@ function getFFmpegDownloadUrl(platform: string, arch: string): string {
     case 'darwin':
       // Handle both Intel and Apple Silicon
       return arch === 'arm64' 
-        ? URL_MAC_X64
-        : URL_MAC_ARM64
+        ? URL_MAC_ARM64
+        : URL_MAC_X64
     case 'linux':
       return URL_LINUX_X64
     default:

@@ -18,6 +18,11 @@ An Electron-based desktop application for translating subtitles using AI technol
 - Download / Upload subtitles to subtitle websites
 - Proper UX/UI
 
+## Known bugs
+- No proper progress for downloading ffmpeg
+- State is not cleared when load new subtitles
+- No windows arm support
+
 ## Usage
 
 1. Grab latest release or build the app
