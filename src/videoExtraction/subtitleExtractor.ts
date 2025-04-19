@@ -2,11 +2,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as childProcess from 'child_process';
 import { promisify } from 'util';
-import { SubtitleTrack, VideoInfo, ExtractSubtitleOptions } from './types';
+import { SubtitleTrack, VideoInfo } from './types';
 import { getFfmpegExecPath, getUserDataDir } from './ffmpeg';
 
 const exec = promisify(childProcess.exec);
 const readFile = promisify(fs.readFile);
+const rmFile = promisify(fs.unlink);
 
 export function parseFfmpegSubtitleStreams(output: string): SubtitleTrack[] {
     const lines = output.split('\n');
@@ -90,6 +91,8 @@ export async function extractSubtitle(videoPath: string, subtitleIndex: number):
         } catch (error) {
             console.error('Error reading subtitle file:', error);
             throw new Error(`Failed to read subtitle file: ${error.message || error}`);
+        } finally {
+            await rmFile(outputPath);
         }
     } catch (error) {
         console.error('Error extracting subtitle:', error);
