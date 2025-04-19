@@ -1,56 +1,58 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import unzipper from 'unzipper';
 
 import { app } from 'electron';
 import { 
   detectSubtitles,
-  extractSubtitle,
-  getSubtitleExtension,
-  cleanupTempFiles 
 } from './subtitleExtractor';
 import { 
   FFmpegDownloadOptions,
-  SubtitleTrack,
-  VideoInfo,
-  ExtractSubtitleOptions 
+  VideoInfo, 
 } from './types';
 
+import { promisify } from 'util';
+const moveFile = promisify(fs.rename);
+const removeDir = promisify(fs.rmdir);
+const chmodFile = promisify(fs.chmod);
+const removeFile = promisify(fs.unlink);
 const URL_MAC_X64 = 'https://evermeet.cx/pub/ffmpeg/ffmpeg-7.1.1.zip';
 const URL_MAC_ARM64 = 'https://www.osxexperts.net/ffmpeg711arm.zip';
 const URL_LINUX_X64 = 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz';
 const URL_WIN_X64 = 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip';
 
-
-/**
- * Gets the appropriate ffmpeg download URL based on the platform
- */
-function getFFmpegDownloadUrl(platform: string, arch: string): string {
-  // Base URL for ffmpeg downloads
+export const initializeFFmpeg = async (options: FFmpegDownloadOptions): Promise<string> => {
+  const downloadPath = getUserDataDir();
+  const execPath = getFfmpegExecPath(downloadPath);
   
-  // Determine correct URL based on platform and architecture
-  switch (platform) {
-    case 'win32':
-      return URL_WIN_X64
-    case 'darwin':
-      // Handle both Intel and Apple Silicon
-      return arch === 'arm64' 
-        ? URL_MAC_X64
-        : URL_MAC_ARM64
-    case 'linux':
-      return URL_LINUX_X64
-    default:
-      throw new Error(`Unsupported platform: ${platform}`);
+  if (execPath && fs.existsSync(execPath)) {
+    console.log(`Using existing ffmpeg at ${execPath}`);
+    return execPath;
+  } else {
+    options.outputDir = downloadPath;
   }
+  
+  return downloadFFmpeg(options);
+} 
+
+const getExecName = () => {
+  const platform = os.platform();
+  const extension = platform === 'win32' ? '.exe' : '';
+  return `ffmpeg${extension}`;
 }
 
-/**
- * Downloads and saves the ffmpeg executable
- */
+export const getFfmpegExecPath = (outputDir: string) => {
+  return path.join(outputDir, getExecName());
+}
+
 export async function downloadFFmpeg(options: FFmpegDownloadOptions): Promise<string> {
   const platform = options.platform || os.platform();
   const arch = os.arch();
+  console.log(`arch`, arch);
+  
   const url = getFFmpegDownloadUrl(platform, arch);
+  const extension = url.split('.').pop();
   console.log(`url`, url);
   
   
@@ -60,7 +62,8 @@ export async function downloadFFmpeg(options: FFmpegDownloadOptions): Promise<st
   }
   
   // Determine filename based on platform
-  const filename = platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+  // const filename = platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+  const filename = `ffmpeg.${extension}`;
   const outputPath = path.join(options.outputDir, filename);
   
   try {
@@ -107,38 +110,92 @@ export async function downloadFFmpeg(options: FFmpegDownloadOptions): Promise<st
     writer.end();
     
     // Make the file executable on non-Windows platforms
-    if (platform !== 'win32') {
-      fs.chmodSync(outputPath, 0o755);
-    }
+    console.log(`outputPath`, outputPath);
     
     console.log(`FFmpeg downloaded successfully to ${outputPath}`);
-    return outputPath;
   } catch (error) {
     console.error('Error downloading ffmpeg:', error);
     throw error;
   }
+  // unzip the file
+
+  if (extension === 'zip') {
+    const zip = fs.createReadStream(outputPath);
+    const extractDir = path.join(options.outputDir, 'extracted');
+    console.log(`extractDir`, extractDir);
+    
+    const extract = unzipper.Extract({ path: extractDir });
+    zip.pipe(extract);
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        zip.on('end', () => resolve());
+        zip.on('error', reject);
+      });
+    } catch (error) {
+      console.error('Error unzipping ffmpeg:', error);
+      throw error;
+    }
+    const execOutputPath = getFfmpegExecPath(options.outputDir);
+    console.log(`execOutputPath`, execOutputPath);
+    
+    try {
+      await moveFile(path.join(extractDir, getExecName()), execOutputPath);
+    } catch (error) {
+      console.error('Error renaming ffmpeg:', error);
+      throw error;
+    }
+    try {
+      await removeDir(extractDir, { recursive: true });
+      await removeFile(outputPath);
+    } catch (error) {
+      console.error('Error removing extracted directory and file:', error);
+    }
+    if (platform !== 'win32') {
+        try {
+            await chmodFile(execOutputPath, 0o755);
+        } catch (error) {
+            console.error('Error chmodding ffmpeg:', error);
+            throw error;
+        }
+    }
+    return execOutputPath;
+  } else {
+    console.log(`Archive format not supported: ${extension}`);
+  }
+
+  return outputPath;
+}
+
+/**
+ * Gets the appropriate ffmpeg download URL based on the platform
+ */
+function getFFmpegDownloadUrl(platform: string, arch: string): string {
+  // Base URL for ffmpeg downloads
+  
+  // Determine correct URL based on platform and architecture
+  switch (platform) {
+    case 'win32':
+      return URL_WIN_X64
+    case 'darwin':
+      // Handle both Intel and Apple Silicon
+      return arch === 'arm64' 
+        ? URL_MAC_X64
+        : URL_MAC_ARM64
+    case 'linux':
+      return URL_LINUX_X64
+    default:
+      throw new Error(`Unsupported platform: ${platform}`);
+  }
 }
 
 
-export const initializeFFmpeg = async (options: FFmpegDownloadOptions): Promise<string> => {
-  const downloadPath = getDefaultFFmpegDir();
-  
-  console.log(`downloadPath`, downloadPath);
-  
-  if (downloadPath && fs.existsSync(downloadPath)) {
-    console.log(`Using existing ffmpeg at ${downloadPath}`);
-    return downloadPath;
-  } else {
-    options.outputDir = downloadPath;
-  }
-  
-  return downloadFFmpeg(options);
-} 
+
 
 // Default ffmpeg directory in app data
-export const getDefaultFFmpegDir = (): string => {
+export const getUserDataDir = (): string => {
   if (app) {
-    return path.join(app.getPath('userData'), 'ffmpeg');
+    return path.join(app.getPath('userData'));
   } else {
     // Fallback for non-Electron environment (like tests)
     return path.join(os.tmpdir(), 'ai-sub-translator-ffmpeg');
@@ -148,12 +205,12 @@ export const getDefaultFFmpegDir = (): string => {
 /**
  * Gets information about a video file, including available subtitle tracks
  */
-// export async function getVideoInfo(videoPath: string): Promise<VideoInfo> {
-//   // Ensure ffmpeg is available
-//   const ffmpegPath = await initializeFFmpeg({});
+export async function getVideoInfo(videoPath: string): Promise<VideoInfo> {
+  // Ensure ffmpeg is available
+  const ffmpegPath = await initializeFFmpeg({});
   
-//   return detectSubtitles(videoPath, ffmpegPath);
-// }
+  return detectSubtitles(videoPath, ffmpegPath);
+}
 
 /**
  * Extracts a subtitle from a video file

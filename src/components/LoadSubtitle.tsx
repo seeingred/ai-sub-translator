@@ -65,12 +65,12 @@ const LoadSubtitle = () => {
         (async () => {
             try {
                 setIsLoading(true);
-                // const info = await window.video.getVideoInfo(fileResponse?.path);
-                // setVideoInfo(info);
-                // setIsLoading(false);
-                // if (info.subtitleTracks.length > 0) {
-                //     setSelectedSubtitleIndex(info.subtitleTracks[0].index);
-                // }
+                const info = await window.video.getVideoInfo(fileResponse?.path);
+                setVideoInfo(info);
+                setIsLoading(false);
+                if (info.subtitleTracks.length > 0) {
+                    setSelectedSubtitleIndex(info.subtitleTracks[0].index);
+                }
             } catch (error) {
                 setIsLoading(false);
                 setError(`Failed to analyze video: ${error.message || 'Unknown error'}`);
@@ -121,7 +121,7 @@ const LoadSubtitle = () => {
             )}
             {!!text && <Translation text={text} />}
             {error && <div className="error">{error}</div>}
-            {videoInfo && (
+            {videoInfo && !text && (
                 <div className="video-info">
                     <h3>Available Subtitles</h3>
                     {videoInfo.subtitleTracks.length === 0 ? (
