@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs, { stat } from 'fs';
 import path from 'path';
 import os from 'os';
 import unzipper from 'unzipper';
@@ -17,6 +17,7 @@ const moveFile = promisify(fs.rename);
 const removeDir = promisify(fs.rmdir);
 const chmodFile = promisify(fs.chmod);
 const removeFile = promisify(fs.unlink);
+const statFile = promisify(fs.stat);
 const URL_MAC_X64 = 'https://evermeet.cx/pub/ffmpeg/ffmpeg-7.1.1.zip';
 const URL_MAC_ARM64 = 'https://www.osxexperts.net/ffmpeg711arm.zip';
 const URL_LINUX_X64 = 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz';
@@ -44,6 +45,31 @@ const getExecName = () => {
 
 export const getFfmpegExecPath = (outputDir: string) => {
   return path.join(outputDir, getExecName());
+}
+
+const findExecutable = async (dir: string, execName: string): Promise<string | null> => {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    console.log(`filePath`, filePath);
+    let stat: fs.Stats;
+    try {
+        stat = await statFile(filePath);
+    } catch (error) {
+        console.error(`Error getting stats for file ${filePath}:`, error);
+        continue;
+    }
+    console.log(`stat`, stat);
+    if (stat.isFile() && execName === file) {
+        return filePath;
+    } else if (stat.isDirectory()) {
+        const result = await findExecutable(filePath, execName);
+        if (result) {
+            return result;
+        }
+    }
+  }
+  return null;
 }
 
 export async function downloadFFmpeg(options: FFmpegDownloadOptions): Promise<string> {
@@ -136,13 +162,19 @@ export async function downloadFFmpeg(options: FFmpegDownloadOptions): Promise<st
       console.error('Error unzipping ffmpeg:', error);
       throw error;
     }
-    const execOutputPath = getFfmpegExecPath(options.outputDir);
-    console.log(`execOutputPath`, execOutputPath);
+    // const execOutputPath = getFfmpegExecPath(options.outputDir);
+    // console.log(`execOutputPath`, execOutputPath);
+
+    // find th executable in extracted dir and subdirs scanning files recursively
+    const execName = getExecName();
+    const execOutputPath = getFfmpegExecPath(getUserDataDir());
+    const execExrtractedOutputPath = await findExecutable(extractDir, execName);
+
     
     try {
-      await moveFile(path.join(extractDir, getExecName()), execOutputPath);
+      await moveFile(execExrtractedOutputPath, execOutputPath);
     } catch (error) {
-      console.error('Error renaming ffmpeg:', error);
+      console.error('Error moving ffmpeg:', error);
       throw error;
     }
     try {

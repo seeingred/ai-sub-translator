@@ -40,8 +40,10 @@ const createWindow = (): void => {
     // and load the index.html of the app.
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // Open the DevTools only if the app is not packaged.
+    if (!app.isPackaged) {
+        mainWindow.webContents.openDevTools();
+    }
 
     ipcMain.handle('progress', (event, progress: number) => {
         mainWindow.setProgressBar(progress);
