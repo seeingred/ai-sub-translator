@@ -4,11 +4,9 @@ import * as childProcess from 'child_process';
 import { promisify } from 'util';
 import { SubtitleTrack, VideoInfo } from './types';
 import { getFfmpegExecPath, getUserDataDir } from './ffmpeg';
-
+import { promises as fsPromises } from 'fs';
 const exec = promisify(childProcess.exec);
-const readFile = promisify(fs.readFile);
-const rmFile = promisify(fs.unlink);
-
+const { readFile, unlink: rmFile } = fsPromises;
 export function parseFfmpegSubtitleStreams(output: string): SubtitleTrack[] {
     const lines = output.split('\n');
     const subtitles: SubtitleTrack[] = [];

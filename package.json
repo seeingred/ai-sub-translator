@@ -1,8 +1,8 @@
 {
   "name": "ai-sub-translator",
   "productName": "ai-sub-translator",
-  "version": "1.0.0",
-  "description": "My Electron application description",
+  "version": "0.2.0",
+  "description": "Free AI subtitle translator",
   "main": ".webpack/main",
   "scripts": {
     "start": " electron-forge start",
@@ -27,6 +27,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.8.0",
     "@electron-forge/plugin-fuses": "^7.8.0",
     "@electron-forge/plugin-webpack": "^7.8.0",
+    "@electron-forge/publisher-github": "^7.8.0",
     "@electron/fuses": "^1.8.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

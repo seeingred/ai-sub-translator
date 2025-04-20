@@ -1,4 +1,4 @@
-import fs, { stat } from 'fs';
+import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import unzipper from 'unzipper';
@@ -13,14 +13,12 @@ import {
     VideoInfo,
 } from './types';
 
-import { promisify } from 'util';
 import { Readable } from 'stream';
-const moveFile = promisify(fs.rename);
-const removeDir = promisify(fs.rmdir);
-const chmodFile = promisify(fs.chmod);
-const removeFile = promisify(fs.unlink);
-const statFile = promisify(fs.stat);
-const makeDir = promisify(fs.mkdir);
+import { promises as fsPromises } from 'fs';
+
+// Use fs.promises directly instead of promisify
+const { rename: moveFile, rmdir: removeDir, chmod: chmodFile, unlink: removeFile, stat: statFile, mkdir: makeDir } = fsPromises;
+
 const URL_MAC_X64 = 'https://evermeet.cx/pub/ffmpeg/ffmpeg-7.1.1.zip';
 const URL_MAC_ARM64 = 'https://www.osxexperts.net/ffmpeg711arm.zip';
 const URL_LINUX_X64 = 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz';
@@ -176,7 +174,7 @@ export async function downloadFFmpeg(options: FFmpegDownloadOptions): Promise<st
 
             const compressedFile = fs.createReadStream(outputPath);
             const webStream = Readable.toWeb(compressedFile);
-            const decompressor = new XzReadableStream(webStream);
+            const decompressor = new XzReadableStream(webStream as ReadableStream<Uint8Array>);
             const reader = decompressor.getReader();
             while (true) {
                 const { done, value } = await reader.read();

@@ -1,8 +1,7 @@
 import { BrowserWindow, dialog } from 'electron';
-import fs from 'fs';
-import { promisify } from 'util';
 import { FileType, FileLoadResponse } from './types';
-const readFile = promisify(fs.readFile);
+import { promises as fsPromises } from 'fs';
+const { readFile } = fsPromises;
 
 export const loadFile = async (window: BrowserWindow): Promise<FileLoadResponse> => {
     const res = await dialog.showOpenDialog(window, {
