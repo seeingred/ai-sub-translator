@@ -19,6 +19,9 @@ import { promises as fsPromises } from 'fs';
 // Use fs.promises directly instead of promisify
 const { rename: moveFile, rmdir: removeDir, chmod: chmodFile, unlink: removeFile, stat: statFile, mkdir: makeDir } = fsPromises;
 
+// Inject the timeout fix
+app.commandLine.appendSwitch('network-family-autoselection-attempt-timeout', '500');
+
 const URL_MAC_X64 = 'https://evermeet.cx/pub/ffmpeg/ffmpeg-7.1.1.zip';
 const URL_MAC_ARM64 = 'https://www.osxexperts.net/ffmpeg711arm.zip';
 const URL_LINUX_X64 = 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz';

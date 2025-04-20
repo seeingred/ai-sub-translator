@@ -17,7 +17,9 @@ const isMacOS = process.platform === 'darwin';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    icon: './images/icon'
+    icon: './images/icon',
+    // Note: To build for multiple architectures, use CLI flags:
+    // npm run make -- --arch=x64,arm64
   },
   rebuildConfig: {},
   makers: [
@@ -26,7 +28,7 @@ const config: ForgeConfig = {
       new MakerSquirrel({
         name: 'ai-sub-translator',
         setupExe: 'ai-sub-translator-setup.exe',
-        setupIcon: './images/icon.ico',
+        setupIcon: './images/icon.ico'
       })
     ]),
     // Include MakerZIP for all platforms

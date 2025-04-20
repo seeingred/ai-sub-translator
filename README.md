@@ -10,6 +10,7 @@ An Electron-based desktop application for translating subtitles using AI technol
 - Progress bar
 - Modern React-based user interface (he-he)
 - Grab subtitles directly from video source
+- Support for both x64 and ARM64 Windows architectures
 
 ## ToDo
 
@@ -21,7 +22,6 @@ An Electron-based desktop application for translating subtitles using AI technol
 ## Known bugs
 - No proper progress for downloading ffmpeg
 - State is not cleared when load new subtitles
-- No windows arm support
 
 ## Usage
 
@@ -70,10 +70,31 @@ npm run make
 
 This will create distributable packages for your platform.
 
+### Building for specific architectures
+
+For Windows, you can build for specific architectures:
+
+```bash
+# Build for Windows x64
+npm run make:win:x64
+
+# Build for Windows ARM64
+npm run make:win:arm64
+
+# Build for both Windows architectures
+npm run make:win:all
+```
+
 ## Available Scripts
 
 - `npm start` - Start the application in development mode
-- `npm run make` - Create distributable packages
+- `npm run make` - Create distributable packages for your current platform
+- `npm run make:win:x64` - Build Windows x64 package
+- `npm run make:win:arm64` - Build Windows ARM64 package
+- `npm run make:win:all` - Build Windows packages for both architectures
+- `npm run make:mac` - Build macOS package
+- `npm run make:linux` - Build Linux package
+- `npm run make:all` - Build packages for all platforms and architectures
 
 ## Technologies Used
 
