@@ -15,7 +15,7 @@
     "make:linux": "npm run make:linux:x64 && npm run make:linux:arm64",
     "make:linux:x64": "electron-forge make --platform linux --arch x64",
     "make:linux:arm64": "electron-forge make --platform linux --arch arm64",
-    "make:all": "npm run make:mac && npm run make:win:all && npm run make:linux",
+    "make:all": "npm run make:mac && npm run make:win && npm run make:linux",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
   },
