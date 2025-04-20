@@ -11,20 +11,33 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
 
+// Detect if running on macOS
+const isMacOS = process.platform === 'darwin';
+
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: './images/icon'
   },
   rebuildConfig: {},
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({}), {
-    name: '@electron-forge/maker-deb',
-      config: {
-        options: {
-          icon: './images/icon.png'
-        }
-    }
-  }],
+  makers: [
+    // Only include MakerSquirrel when NOT on macOS
+    ...(isMacOS ? [] : [
+      new MakerSquirrel({
+        name: 'ai-sub-translator',
+        setupExe: 'ai-sub-translator-setup.exe',
+        setupIcon: './images/icon.ico',
+      })
+    ]),
+    // Include MakerZIP for all platforms
+    new MakerZIP({}, ['darwin', 'win32', 'linux']), 
+    new MakerRpm({}), 
+    new MakerDeb({
+      options: {
+        icon: './images/icon.png'
+      }
+    })
+  ],
   plugins: [
     new AutoUnpackNativesPlugin({}),
     new WebpackPlugin({
