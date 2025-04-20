@@ -51,7 +51,6 @@ export async function detectSubtitles(videoPath: string, ffmpegPath: string): Pr
     let commandOutput = ''
 
     try {
-        // Use ffmpeg to list streams in the video file
         await exec(`"${ffmpegPath}" -i "${videoPath}"`);
     } catch (error) {
         commandOutput = error.message;
