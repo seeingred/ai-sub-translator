@@ -11,6 +11,7 @@ An Electron-based desktop application for translating subtitles using AI technol
 - Modern React-based user interface (he-he)
 - Grab subtitles directly from video source
 - Support for both x64 and ARM64 Windows architectures
+- **Headless server mode** for servers (JSON-RPC API)
 
 ## ToDo
 
@@ -52,12 +53,33 @@ npm install
 ```
 
 
+## Headless Server Mode
+
+The app can run as a headless server on Linux servers without GUI, exposing a JSON-RPC API for subtitle translation.
+
+### Quick Start
+```bash
+# On Linux server (auto-detects no display)
+./ai-sub-translator
+
+# Force headless mode on any platform
+./ai-sub-translator --headless
+
+# Custom port
+API_PORT=8080 ./ai-sub-translator --headless
+```
+
+**For full server documentation, see [README-SERVER.md](./README-SERVER.md)**
+
 ## Development
 
 To start the application in development mode:
 
 ```bash
 npm start
+
+# Test headless mode locally
+npm start -- --headless
 ```
 
 ## Building
