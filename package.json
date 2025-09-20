@@ -57,6 +57,7 @@
   "dependencies": {
     "@google/genai": "^0.8.0",
     "electron-squirrel-startup": "^1.0.1",
+    "jayson": "^4.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tar": "^7.4.3",
