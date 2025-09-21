@@ -44,9 +44,11 @@ src/
 - Automatically activates on Linux without display (`!process.env.DISPLAY`)
 - Force with `--headless` flag on any platform
 - Custom port via `API_PORT` environment variable (default: 9090)
+- Run packaged app: `./out/ai-sub-translator-darwin-arm64/ai-sub-translator.app/Contents/MacOS/ai-sub-translator --headless`
 
 ### API Design Philosophy
 - **Single global state** - No session management needed
+- **No job IDs** - Single active translation, no ID tracking needed
 - **One job at a time** - Gemini API isn't scalable for parallel requests
 - **Automatic cleanup** - Loading new file clears previous state
 - **Simple workflow** - Load → Extract (if video) → Translate → Save
@@ -82,29 +84,38 @@ clear()
 ### Workflow Example
 
 ```bash
+# Note: All requests require JSON-RPC 2.0 format with jsonrpc field
+
 # 1. Load video
 curl -X POST http://localhost:9090 \
-  -d '{"method":"file.load","params":["/path/to/video.mkv"]}'
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"file.load","params":["/path/to/video.mkv"],"id":1}'
 
-# 2. Extract subtitle (e.g., stream 18)
+# 2. Extract subtitle (use actual stream index from response)
 curl -X POST http://localhost:9090 \
-  -d '{"method":"subtitle.extract","params":[18]}'
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"subtitle.extract","params":[6],"id":2}'
 
-# 3. Start translation
+# 3. Start translation (no job ID returned)
 curl -X POST http://localhost:9090 \
-  -d '{"method":"translation.start","params":[{
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"translation.start","params":[{
     "apiKey":"YOUR_KEY",
     "language":"Russian",
-    "context":"Movie Name"
-  }]}'
+    "context":"Movie Name",
+    "model":"gemini-1.5-flash-8b",
+    "batchSize":50
+  }],"id":3}'
 
-# 4. Monitor progress
+# 4. Monitor progress (no job ID needed)
 curl -X POST http://localhost:9090 \
-  -d '{"method":"translation.status","params":[]}'
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"translation.status","params":[],"id":4}'
 
 # 5. Save result
 curl -X POST http://localhost:9090 \
-  -d '{"method":"translation.save","params":["/path/output.srt"]}'
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"translation.save","params":["/path/output.srt"],"id":5}'
 ```
 
 ## Translation Process
@@ -169,6 +180,21 @@ Currently no automated tests. Main testing is done through:
 - Use Foundation series episodes for testing (complex multilingual tracks)
 - Test with both .srt files directly and video extraction
 - Verify Russian/Ukrainian translations for quality
+- Successfully tested with Oppenheimer (2023) - 3 hour movie, 2908 subtitles
+
+## Recent Updates (Sept 2025)
+
+### Code Cleanup
+- Removed obsolete `serverApi.ts` and `serverState.ts` files (session-based API)
+- Eliminated job ID tracking from `simpleServerState.ts`
+- Simplified API responses to remove unnecessary job IDs
+- True single-threaded, stateless implementation achieved
+
+### Gemini API Quota Notes
+- **Free Tier**: Limited to 50 requests/day - insufficient for full movies
+- **Tier 1 (Paid)**: Successfully handles full-length movies (~3000 subtitles)
+- Full movie translation takes approximately 4-5 minutes with Tier 1 API
+- Batch size of 50 subtitles per request is optimal
 
 ## Known Issues
 

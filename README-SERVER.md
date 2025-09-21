@@ -205,7 +205,6 @@ client.request('file.load', ['/path/to/video.mkv'], (err, response) => {
       language: 'Russian',
       context: 'Movie Name'
     }], (err, response) => {
-      const jobId = response.result.jobId;
 
       // Monitor progress...
     });

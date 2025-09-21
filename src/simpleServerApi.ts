@@ -58,7 +58,7 @@ export const simpleServerApiHandlers = {
                     type: 'video',
                     path: filePath,
                     subtitles: videoInfo.subtitleTracks.map((sub, index) => ({
-                        id: index,
+                        id: sub.index,  // Use actual ffmpeg stream index, not array index
                         language: sub.language || 'Unknown',
                         format: sub.format,
                         title: sub.title || `Subtitle ${index + 1}`
@@ -89,7 +89,7 @@ export const simpleServerApiHandlers = {
                 response.hasContent = !!file.content;
             } else if (file.type === 'video') {
                 response.subtitles = file.videoInfo?.subtitleTracks.map((sub, index) => ({
-                    id: index,
+                    id: sub.index,  // Use actual ffmpeg stream index, not array index
                     language: sub.language || 'Unknown',
                     format: sub.format,
                     title: sub.title || `Subtitle ${index + 1}`
@@ -173,7 +173,7 @@ export const simpleServerApiHandlers = {
             }
 
             // Start new translation job
-            const jobId = serverState.startJob({
+            serverState.startJob({
                 apiKey,
                 language,
                 context: context || '',
@@ -200,8 +200,8 @@ export const simpleServerApiHandlers = {
             });
 
             callback(null, {
-                jobId,
-                status: 'started'
+                status: 'started',
+                message: 'Translation started'
             });
         } catch (error) {
             callback({ code: -32000, message: error.message });
@@ -219,7 +219,6 @@ export const simpleServerApiHandlers = {
             }
 
             callback(null, {
-                id: job.id,
                 status: job.status,
                 progress: Math.round(job.progress * 100),
                 startedAt: job.startedAt,

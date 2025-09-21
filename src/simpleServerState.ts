@@ -10,7 +10,6 @@ export interface LoadedFile {
 }
 
 export interface TranslationJob {
-    id: string;
     status: 'idle' | 'in_progress' | 'completed' | 'failed';
     progress: number; // 0 to 1
     startedAt?: Date;
@@ -29,7 +28,6 @@ export interface TranslationJob {
 class SimpleServerState {
     private loadedFile: LoadedFile | null = null;
     private currentJob: TranslationJob = {
-        id: '',
         status: 'idle',
         progress: 0
     };
@@ -67,20 +65,14 @@ class SimpleServerState {
     }
 
     // Start a new translation job (cancels any existing job)
-    startJob(options: TranslationJob['options']): string {
-        // Generate new job ID
-        const jobId = this.generateId();
-
+    startJob(options: TranslationJob['options']): void {
         // Clear any existing job
         this.currentJob = {
-            id: jobId,
             status: 'in_progress',
             progress: 0,
             startedAt: new Date(),
             options
         };
-
-        return jobId;
     }
 
     // Get current job
@@ -117,7 +109,6 @@ class SimpleServerState {
     // Clear the current job
     clearJob(): void {
         this.currentJob = {
-            id: '',
             status: 'idle',
             progress: 0
         };
@@ -154,10 +145,6 @@ class SimpleServerState {
         return null;
     }
 
-    private generateId(): string {
-        return Math.random().toString(36).substring(2, 15) +
-               Math.random().toString(36).substring(2, 15);
-    }
 }
 
 // Singleton instance
