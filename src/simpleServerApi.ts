@@ -5,8 +5,9 @@ import { getVideoInfo, initializeFFmpeg } from './videoExtraction/ffmpeg';
 import { extractSubtitle } from './videoExtraction/subtitleExtractor';
 import handleSubtitleServer from './handleSubtitleServer';
 
-// Global variable to track current translation task
+// Global variables to track current translation task
 let currentTranslationTask: Promise<void> | null = null;
+let abortController: AbortController | null = null;
 
 export const simpleServerApiHandlers = {
     // Initialize FFmpeg (called automatically on startup)
@@ -25,6 +26,13 @@ export const simpleServerApiHandlers = {
     // Load a file (video or subtitle) - replaces any existing file
     'file.load': async (args: any[], callback: any) => {
         try {
+            // Cancel any existing translation
+            if (abortController) {
+                abortController.abort();
+                abortController = null;
+            }
+            currentTranslationTask = null;
+
             const [filePath] = args;
             if (!filePath) {
                 callback({ code: -32602, message: 'Invalid params: filePath required' });
@@ -167,10 +175,14 @@ export const simpleServerApiHandlers = {
             }
 
             // Cancel any existing translation task
-            if (currentTranslationTask) {
+            if (abortController) {
                 console.log('Cancelling existing translation task...');
-                currentTranslationTask = null;
+                abortController.abort();
             }
+
+            // Create new abort controller for this translation
+            abortController = new AbortController();
+            const signal = abortController.signal;
 
             // Start new translation job
             serverState.startJob({
@@ -188,15 +200,22 @@ export const simpleServerApiHandlers = {
                 language,
                 pieceNameOrContext: context || '',
                 model: model || 'gemini-1.5-flash-8b',
-                batchSize: batchSize || 50
+                batchSize: batchSize || 50,
+                signal // Pass abort signal
             }, (progress) => {
                 serverState.updateJobProgress(progress);
             }).then(result => {
-                serverState.completeJob(result);
+                if (!signal.aborted) {
+                    serverState.completeJob(result);
+                }
                 currentTranslationTask = null;
+                abortController = null;
             }).catch(error => {
-                serverState.failJob(error.message);
+                if (!signal.aborted) {
+                    serverState.failJob(error.message);
+                }
                 currentTranslationTask = null;
+                abortController = null;
             });
 
             callback(null, {
@@ -284,8 +303,14 @@ export const simpleServerApiHandlers = {
     // Clear current file and job
     'clear': async (args: any[], callback: any) => {
         try {
-            serverState.clearFile();
+            // Cancel any running translation
+            if (abortController) {
+                console.log('Cancelling translation due to clear command...');
+                abortController.abort();
+                abortController = null;
+            }
             currentTranslationTask = null;
+            serverState.clearFile();
             callback(null, { success: true });
         } catch (error) {
             callback({ code: -32000, message: error.message });

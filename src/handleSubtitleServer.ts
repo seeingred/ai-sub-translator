@@ -26,7 +26,7 @@ async function translateBatch(replicas: string[], language: string, pieceNameOrC
 }
 
 const handleSubtitleServer = async (props: HandleSubtitleProps, onProgress?: (progress: number) => void): Promise<string> => {
-    const { text, batchSize = 50, apiKey, language, pieceNameOrContext = '', model = 'gemini-1.5-flash-8b' } = props;
+    const { text, batchSize = 50, apiKey, language, pieceNameOrContext = '', model = 'gemini-1.5-flash-8b', signal } = props;
 
     let newText = text;
     let replicas: string[] = [];
@@ -77,6 +77,12 @@ const handleSubtitleServer = async (props: HandleSubtitleProps, onProgress?: (pr
     let translatedText = '';
 
     while (newReplicas.length > 0) {
+        // Check if translation was cancelled
+        if (signal?.aborted) {
+            console.log('Translation cancelled by user');
+            throw new Error('Translation cancelled');
+        }
+
         const nextBatch = newReplicas.slice(0, batchSize);
         newReplicas = newReplicas.slice(batchSize);
 
